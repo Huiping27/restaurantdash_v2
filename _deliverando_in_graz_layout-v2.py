@@ -1,9 +1,10 @@
-# Import the necessary libraries
+import plotly.graph_objects as go
+import pandas as pd
+from sqlalchemy import create_engine
 import dash
 from dash import html, dcc
-import plotly.graph_objs as go
-import pandas as pd
-import openpyxl as xl
+import openpyxl as px
+
 
 # Initialize the Dash app
 app = dash.Dash()
@@ -22,7 +23,6 @@ active_restaurants_month2 = deliverando[deliverando['Month 2'] > 0]['name'].nuni
 # Calculate the difference and percentage change
 difference_deliverando = active_restaurants_month2 - active_restaurants_month1
 percentage_deliverando = (difference_deliverando / active_restaurants_month1) * 100
-
 # Create a bar plot for total amounts and difference on Deliverando
 fig1 = go.Figure()
 fig1.add_trace(go.Bar(x=['Month 1', 'Month 2'], y=[active_restaurants_month1, active_restaurants_month2], name='Total', width=0.3))
@@ -66,43 +66,105 @@ competitors_market_share = compe_merge['name'].nunique() / total_restaurants
 fig3 = go.Figure(data=[go.Pie(labels=['Deliverando', 'Competitors'], values=[deliverando_market_share, competitors_market_share])])
 fig3.update_layout(title='Market Share Comparison: Deliverando vs Competitors', legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
 
-# Calculate exclusive restaurants on competitors
-competition_restaurants_total = 2932
+# Calculate total amounts for Month 1 and Month 2
+competition_restaurants = 2932
+
+# Identify restaurants exclusive to competitors
 exclusive_to_competitors = 2726
-exclusive_ratio = exclusive_to_competitors / competition_restaurants_total
+
+# Create a bar plot
+fig4 = go.Figure()
+
+# Add bars for total amounts
+fig4.add_trace(go.Bar(x=['Exclusive to Competitors','Total'], y=[ exclusive_to_competitors,competition_restaurants], name='Total', width=0.4))
+# Update layout
+fig4.update_layout(
+    title='Exclusive Restaurants Only On Competitors',
+    xaxis_title='Category',
+    yaxis_title='Total Active Restaurants',
+    barmode='group',
+    legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+    yaxis=dict(range=[0, max(exclusive_to_competitors, competition_restaurants) * 1.1])  # Adjust y-axis range
+)
+
+# Calculate total amounts for Month 1 and Month 2
+competition_restaurants = 2932
+
+# Identify restaurants exclusive to competitors
+exclusive_to_competitors = 2726
+
+# Calculate the exclusive ratio
+exclusive_ratio = exclusive_to_competitors / competition_restaurants 
+# Calculate the market share of competitors
 rest_market_ratio = 1 - exclusive_ratio
 
-# Create a pie plot for exclusive vs non-exclusive competitors
-fig4 = go.Figure(data=[go.Pie(labels=['Exclusive', 'Rest'], values=[exclusive_ratio, rest_market_ratio])])
-fig4.update_layout(title='Exclusive vs Non-Exclusive Competitors', legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
+# Create a pie plot
+fig5 = go.Figure(data=[go.Pie(labels=['Exclusive', 'Rest'], values=[exclusive_ratio, rest_market_ratio])])
 
-# Calculate top 10 active restaurants on competitors
-top_10_active_restaurants = compe_merge.groupby('name')['orders'].sum().nlargest(10)
+# Update layout
+fig5.update_layout(title='Exclusive On Competitos VS No Exclusive Competitors', legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
 
-# Create a bar plot for top 10 active restaurants on competitors
-fig5 = go.Figure(data=[go.Bar(x=top_10_active_restaurants.index, y=top_10_active_restaurants.values)])
-fig5.update_layout(title='Top 10 Restaurants on Competitors', xaxis_title='Restaurant Name', yaxis_title='Total Orders', height=600, width=1100)
+#groupby name and calcualte orders
+restaurant_activity = compe_merge.groupby('name')['orders'].sum()
+# Sort the restaurants based on the total orders in descending order
+sorted_restaurants = restaurant_activity.sort_values(ascending=False)
 
-# Calculate top 10 active restaurants also on Deliverando
+# Get the top 10 active restaurants
+top_10_active_restaurants = sorted_restaurants.head(10)
+
+# Create a bar plot
+fig6 = go.Figure()
+fig6.add_trace(go.Bar(x=top_10_active_restaurants.index, y=top_10_active_restaurants.values))
+
+# Update layout
+fig6.update_layout(
+    title='Top 10 Restaurants On Competitors',
+    xaxis_title='Category',
+    yaxis_title='Total Orders',
+    barmode='group',
+    legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01),
+    yaxis=dict(range=[0, max(top_10_active_restaurants.values) * 1.5]),  # Adjust y-axis range
+    height=600,  # Set the height of the figure
+    width=1100    # Set the width of the figure
+)
+
+#groupby name and calcualte orders
 restaurant_orders = compe_merge.groupby('name')['orders'].sum()
-top_10_in_deliverando = restaurant_orders[restaurant_orders.index.isin(deliverando['name'])].nlargest(10)
 
-# Create a bar plot for top 10 active restaurants also on Deliverando
-fig6 = go.Figure(data=[go.Bar(x=top_10_in_deliverando.index, y=top_10_in_deliverando.values)])
-fig6.update_layout(title='Top 10 Restaurants on Competitors Also on Deliverando', xaxis_title='Restaurant Name', yaxis_title='Total Orders', height=600, width=1100)
+# Sort the restaurants based on the total orders in descending order and extract the top 10
+top_10_restaurants = restaurant_orders.sort_values(ascending=False).head(10)
 
-# Calculate top 10 restaurants also on Deliverando
-top_10_in_deliverando = compe_merge[compe_merge['name'].isin(deliverando['name'])].groupby('name')['orders'].sum().nlargest(10)
+# Filter the top 10 restaurants to include only those present in the deliverando DataFrame
+top_10_in_deliverando = top_10_restaurants[top_10_restaurants.index.isin(deliverando['name'])]
+# Sort the restaurants based on the total orders in descending order and extract the top 10
+top_10_restaurants = restaurant_orders.sort_values(ascending=False).head(10)
 
-# Create a bar plot for top 10 restaurants also on Deliverando
-fig7 = go.Figure(data=[go.Bar(x=top_10_in_deliverando.index, y=top_10_in_deliverando.values)])
-fig7.update_layout(title='Top 10 Restaurants on Competitors Also on Deliverando', xaxis_title='Restaurant Name', yaxis_title='Total Orders', height=600, width=1100)
+# Filter the top 10 restaurants to include only those present in the deliverando DataFrame
+top_10_in_deliverando = top_10_restaurants[top_10_restaurants.index.isin(deliverando['name'])]
+
+
+# Groupby name and calculate orders
+restaurant_orders = compe_merge.groupby('name')['orders'].sum()
+# Create a bar plot
+fig7 = go.Figure()
+fig7.add_trace(go.Bar(
+    x=top_10_in_deliverando.index,  # x-axis: restaurant names
+    y=top_10_in_deliverando.values,  # y-axis: total orders
+))
+
+# Update layout
+fig7.update_layout(
+    title='Top 10 Restaurants On Competitors Also On Delivery',
+    xaxis_title='Restaurant Name',
+    yaxis_title='Total Orders',
+    height=600, 
+    width=1100    
+)
 
 # Define the layout of the app with all graphs
 app.layout = html.Div(children=[
     html.H1(children='Deliverando and Competitors in Graz'),
-
-    # First graph
+     # First graph
     dcc.Graph(id='graph1', figure=fig1),
 
     # Second graph
@@ -119,7 +181,7 @@ app.layout = html.Div(children=[
 
     # Sixth graph
     dcc.Graph(id='graph6', figure=fig6),
-    
+
     # Seventh graph
     dcc.Graph(id='graph7', figure=fig7)
 ])
