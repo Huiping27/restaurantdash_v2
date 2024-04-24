@@ -1,12 +1,9 @@
-import plotly.graph_objects as go
-import pandas as pd
+# Import the necessary libraries
 import dash
-from dash import html, dcc, dash_table
-from dash.dependencies import Input, Output
-import base64
-
-# Define the author's name
-author = "Li"
+from dash import html, dcc
+import plotly.graph_objs as go
+import pandas as pd
+import openpyxl as xl
 
 # Initialize the Dash app
 app = dash.Dash()
@@ -86,6 +83,21 @@ top_10_active_restaurants = compe_merge.groupby('name')['orders'].sum().nlargest
 fig5 = go.Figure(data=[go.Bar(x=top_10_active_restaurants.index, y=top_10_active_restaurants.values)])
 fig5.update_layout(title='Top 10 Restaurants on Competitors', xaxis_title='Restaurant Name', yaxis_title='Total Orders', height=600, width=1100)
 
+# Calculate top 10 active restaurants also on Deliverando
+restaurant_orders = compe_merge.groupby('name')['orders'].sum()
+top_10_in_deliverando = restaurant_orders[restaurant_orders.index.isin(deliverando['name'])].nlargest(10)
+
+# Create a bar plot for top 10 active restaurants also on Deliverando
+fig6 = go.Figure(data=[go.Bar(x=top_10_in_deliverando.index, y=top_10_in_deliverando.values)])
+fig6.update_layout(title='Top 10 Restaurants on Competitors Also on Deliverando', xaxis_title='Restaurant Name', yaxis_title='Total Orders', height=600, width=1100)
+
+# Calculate top 10 restaurants also on Deliverando
+top_10_in_deliverando = compe_merge[compe_merge['name'].isin(deliverando['name'])].groupby('name')['orders'].sum().nlargest(10)
+
+# Create a bar plot for top 10 restaurants also on Deliverando
+fig7 = go.Figure(data=[go.Bar(x=top_10_in_deliverando.index, y=top_10_in_deliverando.values)])
+fig7.update_layout(title='Top 10 Restaurants on Competitors Also on Deliverando', xaxis_title='Restaurant Name', yaxis_title='Total Orders', height=600, width=1100)
+
 # Define the layout of the app with all graphs
 app.layout = html.Div(children=[
     html.H1(children='Deliverando and Competitors in Graz'),
@@ -103,31 +115,15 @@ app.layout = html.Div(children=[
     dcc.Graph(id='graph4', figure=fig4),
 
     # Fifth graph
-    dcc.Graph(id='graph5', figure=fig5)
-])
+    dcc.Graph(id='graph5', figure=fig5),
 
-# Download functionality
-@app.server.route("/download")
-def download_csv():
-    df = pd.DataFrame({'Deliverando_Month1': [active_restaurants_month1],
-                       'Deliverando_Month2': [active_restaurants_month2],
-                       'Difference_Deliverando': [difference_deliverando],
-                       'Percentage_Change_Deliverando': [percentage_deliverando],
-                       'Competitors_Month1': [competition_restaurants_m1],
-                       'Competitors_Month2': [competition_restaurants_m2],
-                       'Difference_Competitors': [difference_competitors],
-                       'Percentage_Change_Competitors': [percentage_competitors],
-                       'Deliverando_Market_Share': [deliverando_market_share],
-                       'Competitors_Market_Share': [competitors_market_share],
-                       'Exclusive_to_Competitors': [exclusive_to_competitors],
-                       'Rest_Market_Ratio': [rest_market_ratio]})
-    csv_string = df.to_csv(index=False, encoding='utf-8')
-    csv_string = "data:text/csv;charset=utf-8," + urllib.parse.quote(csv_string)
-    return html.Div([
-        html.A('Download CSV Data', href=csv_string, download='data.csv')
-    ])
+    # Sixth graph
+    dcc.Graph(id='graph6', figure=fig6),
+    
+    # Seventh graph
+    dcc.Graph(id='graph7', figure=fig7)
+])
 
 # Run the app
 if __name__ == '__main__':
     app.run_server(port=8057)
-
