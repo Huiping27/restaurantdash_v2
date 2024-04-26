@@ -271,8 +271,6 @@ fig10.update_layout(
 # Update layout
 fig10.update_layout(
     title='Top 50 Quickest Response Restaurants On Deliverando',
-    xaxis_title='Avg Response Time(s)',
-    yaxis_title='Restaurant Name',
     height=600, 
     width=1100    
 )
@@ -317,4 +315,4 @@ app.layout = html.Div(children=[
 
 # Run the app
 if __name__ == '__main__':
-    app.run_server(port=8057)
+    app.run_server(port=8066)
