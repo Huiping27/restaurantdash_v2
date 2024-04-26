@@ -60,27 +60,17 @@ fig2.update_layout(
 )
 
 
-deliverando_month1 = 235
-deliverando_month2 = 246
-competitor_month1 = 3168
-competitor_month2 = 3202
 
-# Total commissionable orders for both months
-total_month1 = deliverando_month1 + competitor_month1
-total_month2 = deliverando_month2 + competitor_month2
 
-# Calculate market share for both months
-deliverando_market_share_month1 = deliverando_month1 / total_month1
-deliverando_market_share_month2 = deliverando_month2 / total_month2
-competitor_market_share_month1 = competitor_month1 / total_month1
-competitor_market_share_month2 = competitor_month2 / total_month2
-# Plotting
-labels = ['Deliverando Month 1', 'Deliverando Month 2', 'Competitor Month 1', 'Competitor Month 2']
-values = [deliverando_market_share_month1, deliverando_market_share_month2, competitor_market_share_month1, competitor_market_share_month2]
+# Calculate market share of Deliverando and Competitors
+total_restaurants = deliverando['name'].nunique() + compe_merge['name'].nunique()
+deliverando_market_share = deliverando['name'].nunique() / total_restaurants
+competitors_market_share = compe_merge['name'].nunique() / total_restaurants
 
-fig3 = go.Figure(data=[go.Pie(labels=labels, values=values, hole=0.3)])
+# Create a pie plot for market share
+fig3 = go.Figure(data=[go.Pie(labels=['Deliverando', 'Competitors'], values=[deliverando_market_share, competitors_market_share])])
+fig3.update_layout(title='Market Share Comparison: Deliverando vs Competitors', legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
 
-fig3.update_layout(title='Market Share Comparison for Month 1 and Month 2')
 
 # Calculate total amounts for Month 1 and Month 2
 competition_restaurants = 3202
