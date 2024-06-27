@@ -1,5 +1,5 @@
 
-This project is about the analytics of metrics of one food delivery company. 
+This project is about the analytics of metrics for one food delivery company. 
 
 The project includes: data cleaning, data aggreagtion, data analysis, EDA and finally a dashboard will be deloyed on render.
 
