@@ -1,7 +1,7 @@
 
 This project is about the analytics of metrics for one food delivery company. 
 
-The project includes: data cleaning, data aggreagtion, data analysis, EDA and finally a dashboard will be deloyed on render.
+The project workflow includes: data cleaning, data aggreagtion, data analysis, EDA and finally a dashboard will be deloyed on render.
 
 
 Stackes include:
